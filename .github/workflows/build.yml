@@ -1,31 +1,27 @@
-name: Build iOS IPA
+name: Build Mush8 IPA
+
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Allows you to trigger the build manually
 
 jobs:
-  build:
-    runs-on: macos-14
+  build-ios:
+    runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-ios
-
-      - name: Install Dependencies
+      - name: Configure Rust for iOS
         run: |
-          brew install xcodegen
+          # Use pre-installed rustup to add the iOS target
+          rustup target add aarch64-apple-ios
 
-      - name: Build IPA
+      - name: Compile Mush8 Binary
         run: |
-          chmod +x make-ios.sh
+          chmod +x ./make-ios.sh
           ./make-ios.sh --ipa
 
-      - name: Upload Finished App
+      - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Mush8-IPA
+          name: Mush8-Unsigned-IPA
           path: build/Mush8.ipa
-          
