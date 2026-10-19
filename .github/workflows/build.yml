@@ -14,10 +14,15 @@ jobs:
         run: |
           rustup target add aarch64-apple-ios
 
-      - name: Compile Unpackaged Mush8 Binary
+      - name: Create Mock Keys File
+        run: |
+          # Creates an empty mock file to satisfy the repository's path check
+          touch prod.keys
+
+      - name: Compile Mush8 Binary
         run: |
           chmod +x ./make-ios.sh
-          # --no-assets tells the compiler to skip looking for prod.keys or NSPs
+          # Skips asset packaging using the empty key file
           ./make-ios.sh --ipa --no-assets
 
       - name: Upload IPA Artifact
