@@ -14,19 +14,46 @@ jobs:
         run: |
           rustup target add aarch64-apple-ios
 
-      - name: Create Mock Keys File
+      - name: Direct Cargo Compilation
         run: |
-          # Creates an empty mock file to satisfy the repository's path check
-          touch prod.keys
+          # Build the native backend structures directly via Cargo
+          cargo build --release --target aarch64-apple-ios
 
-      - name: Compile Mush8 Binary
+      - name: Package App Bundle Layout
         run: |
-          chmod +x ./make-ios.sh
-          # Skips asset packaging using the empty key file
-          ./make-ios.sh --ipa --no-assets
+          # Assemble the physical iOS Payload directory
+          mkdir -p Payload/Mush8.app
+          cp target/aarch64-apple-ios/release/nxhost Payload/Mush8.app/Mush8
+          
+          # Setup an infrastructure Info.plist profile
+          cat > Payload/Mush8.app/Info.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>Mush8</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.c22dev.mush8</string>
+              <key>CFBundleName</key>
+              <string>Mush8</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>MinimumOSVersion</key>
+              <string>14.0</string>
+          </dict>
+          </plist>
+          EOF
+
+          # Zip everything into a clean IPA structure
+          zip -r Mush8.ipa Payload/
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Mush8-Unsigned-IPA
-          path: build/Mush8.ipa
+          path: Mush8.ipa
