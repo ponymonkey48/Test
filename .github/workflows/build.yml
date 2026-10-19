@@ -1,7 +1,7 @@
 name: Build Mush8 IPA
 
 on:
-  workflow_dispatch: # Allows you to trigger the build manually
+  workflow_dispatch:
 
 jobs:
   build-ios:
@@ -12,13 +12,13 @@ jobs:
 
       - name: Configure Rust for iOS
         run: |
-          # Use pre-installed rustup to add the iOS target
           rustup target add aarch64-apple-ios
 
-      - name: Compile Mush8 Binary
+      - name: Compile Unpackaged Mush8 Binary
         run: |
           chmod +x ./make-ios.sh
-          ./make-ios.sh --ipa
+          # --no-assets tells the compiler to skip looking for prod.keys or NSPs
+          ./make-ios.sh --ipa --no-assets
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
